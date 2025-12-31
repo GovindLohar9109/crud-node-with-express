@@ -2,9 +2,10 @@ const { User } = require("../models");
 const { generateAccessToken } = require("../helpers/jwt.helper.js");
 const { StatusCodes } = require("http-status-codes");
 const RedisHelper = require("../helpers/redis.helper.js");
+const logger = require("../logger/logger.js");
 
 class UserService {
-  static async getUser(userId) {
+  static async getUser(userId, requestId) {
     const cached = await RedisHelper.getter(String(userId));
     if (cached) {
       return cached;
@@ -14,6 +15,7 @@ class UserService {
       const result = await User.findOne({
         where: { id: userId, deleted_at: null },
       });
+      logger.info("Service getUser", { requestId });
       if (result) RedisHelper.setter(String(userId), result.dataValues);
 
       return result?.dataValues;
@@ -22,11 +24,11 @@ class UserService {
     }
   }
 
-  static async addUser(userData) {
+  static async addUser(userData, requestId) {
     const { email } = userData;
     try {
       let result = await User.findOne({ where: { email: email } });
-
+      logger.info("Service addUser", { requestId });
       if (!result) {
         result = await User.create(userData);
 
@@ -41,7 +43,7 @@ class UserService {
       throw err;
     }
   }
-  static async updateUser(userId, userData) {
+  static async updateUser(userId, userData, requestId) {
     try {
       await User.update(
         { updated_at: new Date(), ...userData },
@@ -52,11 +54,13 @@ class UserService {
     } catch (err) {
       throw err;
     }
+    logger.info("Service updateUser", { requestId });
   }
-  static async deleteUser(userId) {
+  static async deleteUser(userId, requestId) {
     try {
       await User.update({ deleted_at: new Date() }, { where: { id: userId } });
       RedisHelper.clear(String(userId));
+      logger.info("Service deleteUser", { requestId });
       return;
     } catch (err) {
       throw err;

@@ -11,6 +11,7 @@ class UserAddressController {
       const result = await UserAddressService.getUserAddresses(
         req.userId,
         req.query,
+        req.requestId,
       );
 
       const responseData = successMessage(
@@ -21,6 +22,9 @@ class UserAddressController {
       res.status(StatusCodes.OK).json(responseData); // 200
     } catch (err) {
       err.status = err.status || StatusCodes.INTERNAL_SERVER_ERROR; // 500
+      logger.error("Controller getUserAddresses" + err.message, {
+        requestId: req.requestId,
+      });
       const responseData = errorMessage(false, err.message);
       res.status(err.status).json(responseData);
     }
@@ -30,6 +34,7 @@ class UserAddressController {
       const result = await UserAddressService.getUserAddress(
         req.userId,
         req.params.addressId,
+        req.requestId,
       );
 
       const responseData = successMessage(
@@ -40,6 +45,9 @@ class UserAddressController {
       res.status(StatusCodes.OK).json(responseData); // 200
     } catch (err) {
       err.status = err.status || StatusCodes.INTERNAL_SERVER_ERROR; // 500
+      logger.error("Controller getUserAddress " + err.message, {
+        requestId: req.requestId,
+      });
       const responseData = errorMessage(false, err.message);
       res.status(err.status).json(responseData);
     }
@@ -47,12 +55,19 @@ class UserAddressController {
 
   static async addUserAddress(req, res) {
     try {
-      await UserAddressService.addUserAddress(req.userId, req.body);
+      await UserAddressService.addUserAddress(
+        req.userId,
+        req.body,
+        req.requestId,
+      );
 
       const responseData = successMessage(true, "User address created", null);
       res.status(StatusCodes.CREATED).json(responseData); // 201
     } catch (err) {
       err.status = err.status || StatusCodes.INTERNAL_SERVER_ERROR; // 500
+      logger.error("Controller addUserAddress " + err.message, {
+        requestId: req.requestId,
+      });
       const responseData = errorMessage(false, err.message);
       res.status(err.status).json(responseData);
     }
@@ -63,12 +78,16 @@ class UserAddressController {
         req.userId,
         req.params.addressId,
         req.body,
+        req.requestId,
       );
 
       const responseData = successMessage(true, "User address updated", null);
       res.status(StatusCodes.OK).json(responseData); // 200
     } catch (err) {
       err.status = err.status || StatusCodes.INTERNAL_SERVER_ERROR; // 500
+      logger.error("Controller updateUserAddress " + err.message, {
+        requestId: req.requestId,
+      });
       const responseData = errorMessage(false, err.message);
       res.status(err.status).json(responseData);
     }
@@ -78,12 +97,16 @@ class UserAddressController {
       await UserAddressService.deleteUserAddress(
         req.userId,
         req.params.addressId,
+        req.requestId,
       );
 
       const responseData = successMessage(true, "User address deleted", null);
       res.status(StatusCodes.OK).json(responseData); // 200
     } catch (err) {
       err.status = err.status || StatusCodes.INTERNAL_SERVER_ERROR; // 500
+      logger.error("Controller deleteUserAddress " + err.message, {
+        requestId: req.requestId,
+      });
       const responseData = errorMessage(false, err.message);
       res.status(err.status).json(responseData);
     }
