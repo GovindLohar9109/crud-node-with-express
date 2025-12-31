@@ -5,6 +5,8 @@ const {
   errorMessage,
 } = require("../../utils/responseMessages.js");
 const { userAddressSerializer } = require("../../serializers/index.js");
+const logger = require("../../logger/logger.js");
+
 class UserAddressController {
   static async getUserAddresses(req, res) {
     try {
