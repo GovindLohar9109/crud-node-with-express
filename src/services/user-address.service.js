@@ -1,9 +1,10 @@
 const { UserAddress } = require("../models");
 const { User } = require("../models");
 const RedisHelper = require("../helpers/redis.helper.js");
+const logger = require("../logger/logger.js");
 
 class UserAddressService {
-  static async getUserAddresses(userId, query) {
+  static async getUserAddresses(userId, query, requestId) {
     const { limit, page } = query;
 
     const skip = page * limit;
@@ -23,13 +24,13 @@ class UserAddressService {
           },
         ],
       });
-      console.log(result);
+      logger.info("Service getUserAddresses", { requestId });
       return result;
     } catch (err) {
       throw err;
     }
   }
-  static async getUserAddress(userId, addressId) {
+  static async getUserAddress(userId, addressId, requestId) {
     const cached = await RedisHelper.getter(String(userId + "$" + addressId));
     if (cached) {
       return cached;
@@ -42,23 +43,23 @@ class UserAddressService {
 
       if (result?.dataValues)
         RedisHelper.setter(String(userId + "$" + addressId), result.dataValues);
-
+      logger.info("Service getUserAddress", { requestId });
       return result;
     } catch (err) {
       throw err;
     }
   }
 
-  static async addUserAddress(userId, user) {
+  static async addUserAddress(userId, user, requestId) {
     try {
       await UserAddress.create({ user_id: userId, ...user });
-
+      logger.info("Service addUserAddress", { requestId });
       return;
     } catch (err) {
       throw err;
     }
   }
-  static async updateUserAddress(userId, addressId, userData) {
+  static async updateUserAddress(userId, addressId, userData, requestId) {
     try {
       let currDate = new Date();
       await UserAddress.update(
@@ -67,12 +68,14 @@ class UserAddressService {
       );
 
       RedisHelper.clear(String(userId + "$" + addressId));
+      logger.info("Service updateUserAddress", { requestId });
+
       return;
     } catch (err) {
       throw err;
     }
   }
-  static async deleteUserAddress(userId, addressId) {
+  static async deleteUserAddress(userId, addressId, requestId) {
     try {
       let currDate = new Date();
       await UserAddress.update(
@@ -81,6 +84,8 @@ class UserAddressService {
       );
 
       RedisHelper.clear(String(userId + "$" + addressId));
+      logger.info("Service deleteUserAddress", { requestId });
+
       return;
     } catch (err) {
       throw err;

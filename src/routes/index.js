@@ -5,14 +5,11 @@ const redisClient = require("../redis/redisClient.js");
 const { StatusCodes } = require("http-status-codes");
 const sequelize = require("../models/index.js");
 const authMiddleware = require("../middlewares/auth.middleware.js");
+const logger = require("../logger/logger.js");
 
 const router = express.Router();
-
-router.use("/", userRoute);
-router.use("/", authMiddleware, userAddressRoute);
-
 // health api
-router.get("/api/health", async (_, res) => {
+router.get("/api/health", async (req, res) => {
   try {
     const serverTime = new Date().toISOString(); // will return server time
     const redisPing = await redisClient.ping(); //check if redis is working or not
@@ -26,6 +23,9 @@ router.get("/api/health", async (_, res) => {
       dbTime,
     });
   } catch (err) {
+    logger.error(err.message, {
+      requestId: req.requestId,
+    });
     res.status(500).json({
       status: false,
       message: err.message,
@@ -34,3 +34,6 @@ router.get("/api/health", async (_, res) => {
 });
 
 module.exports = router;
+
+router.use("/", userRoute);
+router.use("/", authMiddleware, userAddressRoute);
